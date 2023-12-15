@@ -1,118 +1,267 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
+import { Inter } from "next/font/google";
+import { useState, useEffect } from "react";
 
-const inter = Inter({ subsets: ['latin'] })
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAuth, signInWithPopup, UserCredential, OAuthProvider } from "firebase/auth";
+
+// initialize the web3AuthNoModal SDK
+import { Web3AuthNoModal, Web3AuthNoModalOptions } from "@web3auth/no-modal";
+import { IProvider, WALLET_ADAPTERS } from "@web3auth/base";
+import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
+
+import Web3 from "web3";
+import { RegisteredSubscription } from "web3-eth";
+
+// import configuration files
+import { firebaseConfig } from "@/config/firebase";
+import { chainConfig, web3AuthConfig } from "@/config/web3auth";
+import { ABI, counterAddress, byteCode } from "@/config/counterSC";
+
+import { Button } from "@/components/Button";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID!;
+    const domain = process.env.NEXT_PUBLIC_DOMAIN!;
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+    // state variables
+    const [web3auth, setWeb3auth] = useState<Web3AuthNoModal | null>(null);
+    const [provider, setProvider] = useState<IProvider | null>(null);
+    const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+    const [address, setAddress] = useState<string>("");
+    const [web3, setWeb3] = useState<Web3<RegisteredSubscription> | null>(null);
+    const [balance, setBalance] = useState<string>("");
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+    useEffect(() => {
+        // execute on page load
+        initOnPageLoad();
+    }, []);
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+    useEffect(() => {
+        if (provider != null) setWeb3(new Web3(provider));
+    }, [provider]);
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
+    useEffect(() => {
+        if (loggedIn && provider) {
+            getAddresses();
+        }
+    }, [web3]);
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+    useEffect(() => {
+        if (loggedIn && provider) {
+            getBalance();
+        }
+    }, [address]);
+
+    // get address of the connected wallet
+    const getAddresses = async () => {
+        if (!web3) return;
+        const addresses = await web3.eth?.getAccounts();
+        setAddress(addresses[0]);
+    };
+
+    // get balance of the address
+    const getBalance = async () => {
+        if (!web3) return;
+        const balance = await web3.eth?.getBalance(address);
+        setBalance(parseFloat(web3.utils.fromWei(balance, "ether")).toFixed(3));
+    };
+
+    // conect to polygon testnet network on page load
+    const initOnPageLoad = async () => {
+        const web3auth = new Web3AuthNoModal(web3AuthConfig);
+
+        const privateKeyProvider = new EthereumPrivateKeyProvider({ config: { chainConfig } });
+
+        const openloginAdapter = new OpenloginAdapter({
+            privateKeyProvider,
+            adapterSettings: {
+                uxMode: "redirect",
+                loginConfig: {
+                    jwt: {
+                        verifier: "polygon-demo-verified",
+                        typeOfLogin: "jwt",
+                        clientId,
+                    },
+                },
+            },
+        });
+
+        web3auth.configureAdapter(openloginAdapter);
+        setWeb3auth(web3auth);
+
+        await web3auth.init();
+        setProvider(web3auth.provider);
+
+        if (web3auth.connected) {
+            // set login status to true
+            setLoggedIn(true);
+        }
+    };
+
+    // Call sign-in with microsoft popup throw firebase
+    const signInWithMicrosoft = async (): Promise<UserCredential> => {
+        try {
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const oAuthProvider = new OAuthProvider("microsoft.com");
+            console.log("oAuthProvider", oAuthProvider);
+            oAuthProvider.setCustomParameters({
+                prompt: "consent",
+            });
+
+            const res = await signInWithPopup(auth, oAuthProvider);
+            return res;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    };
+
+    // Login with web3auth
+    const login = async () => {
+        if (!web3auth) {
+            console.error("web3auth not initialized");
+            return;
+        }
+        const loginRes = await signInWithMicrosoft();
+        const idToken = await loginRes.user.getIdToken(true);
+
+        const web3authProvider = await web3auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
+            loginProvider: "jwt",
+            extraLoginOptions: {
+                id_token: idToken,
+                verifierIdField: "email",
+                domain: domain,
+            },
+        });
+        setProvider(web3authProvider);
+    };
+
+    // check if user is logged in and web3 is initialized
+    const checkLogged = () => {
+        if (!loggedIn) throw new Error("Not logged in");
+        if (!web3) throw new Error("Web3 not initialized");
+    };
+
+    // sign a message with the private key of the connected wallet
+    const signMessage = async () => {
+        checkLogged();
+
+        const originalMessage = "You can check with my public-key and the signature that I own the address.";
+
+        const signedMessage = await web3!.eth.personal.sign(originalMessage, address, "some_password");
+        console.log("signedMessage", signedMessage);
+    };
+
+    // send a transaction of 0.001matic to the blockchain from the connected wallet
+    const sendTransaction = async () => {
+        checkLogged();
+
+        const destination = "0xcbBf0E57fe2fB1877f18f84990691ab9E23043C9";
+
+        // Convert 0.001 ether to wei
+        const amount = web3!.utils.toWei("0.001", "ether");
+
+        // Submit transaction to the blockchain and wait for it to be mined
+        const receipt = await web3!.eth
+            .sendTransaction({
+                from: address,
+                to: destination,
+                value: amount,
+            })
+            .on("confirmation", function (confirmationNumber) {
+                if (confirmationNumber.confirmations === BigInt(5)) {
+                    getBalance();
+                }
+            });
+    };
+
+    // Read a smart contract and get the value of the counter
+    const getCounterValueFromSmartContract = async () => {
+        checkLogged();
+
+        const contract = new web3!.eth.Contract(JSON.parse(JSON.stringify(ABI)), counterAddress);
+
+        // Read message from smart contract
+        const count = await contract.methods.get().call();
+        console.log("count", count);
+    };
+
+    // Update state of smart contract, incrementing the counter
+    const incrementCounterValueFromSmartContract = async () => {
+        checkLogged();
+
+        const contract = new web3!.eth.Contract(JSON.parse(JSON.stringify(ABI)), counterAddress);
+
+        // Read message from smart contract
+        await contract.methods.inc().send({
+            from: address,
+        });
+
+        console.log("increment Ok");
+    };
+
+    // deploy a smart contract
+    const deploySmartContract = async () => {
+        checkLogged();
+
+        const contract = new web3!.eth.Contract(JSON.parse(JSON.stringify(ABI)));
+
+        const contractInstance = await contract
+            .deploy({
+                data: byteCode,
+            })
+            .send({
+                from: address,
+            });
+
+        console.log("Contract deployed to ", contractInstance.options.address);
+    };
+
+    // Logout
+    const logout = async () => {
+        checkLogged();
+        await web3auth?.logout();
+        setLoggedIn(false);
+    };
+
+    return (
+        <section className="w-full h-screen flex justify-center items-center bg-[#000000]">
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm" data-v0-t="card">
+                <div className="flex flex-col space-y-1.5 p-6">
+                    <h3 className="text-2xl font-semibold leading-none tracking-tight text-center">
+                        Web3Auth Interact with Polygon Testnet
+                    </h3>
+                </div>
+                {loggedIn ? (
+                    <>
+                        <div className="p-6 space-y-4">
+                            <div className="flex flex-col">
+                                <span className="text-gray-500">Address:</span>
+                                <span className="font-medium">{address}</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-gray-500">Balance:</span>
+                                <span className="font-medium">{balance} Matic</span>
+                            </div>
+                        </div>
+
+                        <Button onClick={signMessage} label="Sign message" />
+                        <Button onClick={sendTransaction} label="Send Transaction" />
+                        <Button onClick={getCounterValueFromSmartContract} label="Read SC" />
+                        <Button onClick={deploySmartContract} label="Smart contract deploy" />
+                        <Button onClick={incrementCounterValueFromSmartContract} label="Write SC" />
+                        <Button onClick={logout} label="LogOut" />
+                    </>
+                ) : (
+                    <Button onClick={login} label="Login with Microsoft" />
+                )}
+            </div>
+        </section>
+    );
 }
