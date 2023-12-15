@@ -2,6 +2,10 @@
 
 This Next.js application demonstrates the integration of Web3Auth with Microsoft authentication using Firebase. The application interacts with the Polygon Testnet blockchain, allowing users to log in with their Microsoft accounts, perform blockchain transactions and interact with a smart contract.
 
+## Demo
+
+A demo of the application is available at [https://web3auth-interact.vercel.app/](https://web3auth-interact.vercel.app/).
+
 ## Prerequisites
 
 Before running the application, ensure you have the following:
