@@ -8,15 +8,13 @@ import { getAuth, signInWithPopup, UserCredential, OAuthProvider } from "firebas
 // initialize the web3AuthNoModal SDK
 import { Web3AuthNoModal, Web3AuthNoModalOptions } from "@web3auth/no-modal";
 import { IProvider, WALLET_ADAPTERS } from "@web3auth/base";
-import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
-import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 
 import Web3 from "web3";
 import { RegisteredSubscription } from "web3-eth";
 
 // import configuration files
 import { firebaseConfig } from "@/config/firebase";
-import { chainConfig, web3AuthConfig } from "@/config/web3auth";
+import { web3AuthConfig, openloginAdapter } from "@/config/web3auth";
 import { ABI, counterAddress, byteCode } from "@/config/counterSC";
 
 import { Button } from "@/components/Button";
@@ -73,22 +71,6 @@ export default function Home() {
     // conect to polygon testnet network on page load
     const initOnPageLoad = async () => {
         const web3auth = new Web3AuthNoModal(web3AuthConfig);
-
-        const privateKeyProvider = new EthereumPrivateKeyProvider({ config: { chainConfig } });
-
-        const openloginAdapter = new OpenloginAdapter({
-            privateKeyProvider,
-            adapterSettings: {
-                uxMode: "redirect",
-                loginConfig: {
-                    jwt: {
-                        verifier: "polygon-demo-verified",
-                        typeOfLogin: "jwt",
-                        clientId,
-                    },
-                },
-            },
-        });
 
         web3auth.configureAdapter(openloginAdapter);
         setWeb3auth(web3auth);
