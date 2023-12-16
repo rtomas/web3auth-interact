@@ -25,6 +25,12 @@ export const openloginAdapter = new OpenloginAdapter({
     privateKeyProvider: new EthereumPrivateKeyProvider({ config: { chainConfig } }),
     adapterSettings: {
         uxMode: "redirect",
+        mfaSettings: {
+            deviceShareFactor: { enable: true, priority: 4, mandatory: false },
+            backUpShareFactor: { enable: true, priority: 2, mandatory: true },
+            socialBackupFactor: { enable: true, priority: 3, mandatory: false },
+            passwordFactor: { enable: true, priority: 1, mandatory: true },
+        },
         loginConfig: {
             jwt: {
                 verifier: process.env.NEXT_PUBLIC_WEB3AUTH_VERIFIER_ID!,
