@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
@@ -210,6 +211,8 @@ export default function Home() {
         checkLogged();
         await web3auth?.logout();
         setLoggedIn(false);
+        setProvider(null);
+        setAddress("");
     };
 
     return (
@@ -243,6 +246,11 @@ export default function Home() {
                 ) : (
                     <Button onClick={login} label="Login with Microsoft" />
                 )}
+                <div className="flex justify-center">
+                    <a href="https://github.com/rtomas/web3auth-interact" target="_blank">
+                        <Image src="/github-mark-white.png" width="21" height="20" alt="Github" className="mt-4 mb-5" />
+                    </a>
+                </div>
             </div>
         </section>
     );
