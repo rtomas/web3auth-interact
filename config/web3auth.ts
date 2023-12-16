@@ -6,7 +6,7 @@ import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 const chainConfig = {
     chainId: "0x13881", // hex of 137, polygon mainnet
     chainNamespace: CHAIN_NAMESPACES.EIP155,
-    rpcTarget: "https://rpc.ankr.com/polygon_mumbai",
+    rpcTarget: "https://rpc-mumbai.maticvigil.com",
     // Avoid using public rpcTarget in production.
     // Use services like Infura, Quicknode etc
     displayName: "Polygon Mumbai Testnet",
