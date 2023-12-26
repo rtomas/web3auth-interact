@@ -4,7 +4,7 @@ import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 
 const chainConfig = {
-    chainId: "0x13881", // hex of 137, polygon mainnet
+    chainId: "0x13881", // mumbai polygon testnet
     chainNamespace: CHAIN_NAMESPACES.EIP155,
     rpcTarget: "https://rpc-mumbai.maticvigil.com",
     // Avoid using public rpcTarget in production.
