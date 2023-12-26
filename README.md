@@ -11,7 +11,7 @@ A demo of the application is available at [https://web3auth-interact.vercel.app/
 Before running the application, ensure you have the following:
 
 -   [Node.js](https://nodejs.org/) installed
--   [Web3Auth](https://web3auth.dev/) project set up and the verifier enabled
+-   [Web3Auth](https://web3auth.io/) project set up and the verifier enabled
 -   [Firebase](https://firebase.google.com/) project set up with Microsoft authentication enabled
 -   [Entra Microsoft](https://entra.microsoft.com/) project set up as a web plarform with the correct redirect URIs
 
