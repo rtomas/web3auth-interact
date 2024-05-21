@@ -4,13 +4,13 @@ import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 
 const chainConfig = {
-    chainId: "0x13881", // mumbai polygon testnet
+    chainId: "0x13882", // Amoy polygon testnet
     chainNamespace: CHAIN_NAMESPACES.EIP155,
-    rpcTarget: "https://rpc-mumbai.maticvigil.com",
+    rpcTarget: "https://rpc-amoy.polygon.technology/",
     // Avoid using public rpcTarget in production.
     // Use services like Infura, Quicknode etc
-    displayName: "Polygon Mumbai Testnet",
-    blockExplorer: "https://mumbai.polygonscan.com/",
+    displayName: "Polygon Amoy Testnet",
+    blockExplorer: "https://amoy.polygonscan.com/",
     ticker: "MATIC",
     tickerName: "Matic",
 };
